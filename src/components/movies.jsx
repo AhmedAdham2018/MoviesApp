@@ -1,40 +1,57 @@
 import React, { Component } from 'react';
-import { getMovies } from './../services/movieService';
+import { getMovies , deleteMovie } from './../services/movieService';
 import Pagination from './common/pagination';
 import { paginate } from './../utils/paginate';
 import GenreList from './common/genre_list';
 import { getGenres } from './../services/genreService';
 import MoviesTable from './movies_table';
 import _ from 'lodash';
+import {toast} from 'react-toastify';
+import SearchInput from './common/search_input';
+import axios from "axios";
 
 
 class Movies extends Component {
 
 state = {
-movies: [],
-genres: [],
-pageSize: 4,
-currentPage: 1,
-sortingColumn: {path: 'title' , order: 'asc'}
+    movies: [],
+    genres: [],
+    pageSize: 4,
+    currentPage: 1,
+    selectedGenre: null,
+    searchQuery: "",
+    sortingColumn: {path: 'title' , order: 'asc'}
 };
 
-componentDidMount(){
-const genres = [{_id: '' , name: "All genres"}, ...getGenres()];
-this.setState({movies: getMovies(), genres});
+async componentDidMount(){
+    const { data } = await getGenres();
+    console.log(data);
+    const genres = [{_id: '' , name: "All genres"}, ...data];
+    const {data: movies} = await getMovies();
+    this.setState({ movies, genres });
 }
 
 
-deleteMovieHandler = (movie) => {
-const movies = this.state.movies.filter(m => m._id !== movie._id);
-this.setState({ movies });
+deleteMovieHandler = async movie => {
+    const oldMovies = this.state.movies;
+    const movies = oldMovies.filter(m => m._id !== movie._id);
+    this.setState({ movies });
+
+    try {
+        await deleteMovie(movie._id)
+    } catch (error) {
+        if(error.response && error.response.status === 404)
+           toast.error('The movie has already been deleted.');
+        setState({movies: oldMovies});
+    }
 }
 
 isLikedHandler = movie => {
-const movies = [...this.state.movies];
-const index = movies.indexOf(movie);
-movies[index] = {...movies[index]};
-movies[index].isLiked = !movies[index].isLiked;
-this.setState({ movies });
+    const movies = [...this.state.movies];
+    const index = movies.indexOf(movie);
+    movies[index] = {...movies[index]};
+    movies[index].isLiked = !movies[index].isLiked;
+    this.setState({ movies });
 }
 
 pageChangeHandler = page => {
@@ -51,10 +68,16 @@ this.setState({ sortingColumn });
 }
 
 getPageData = () => {
-const {currentPage , pageSize , movies: allMovies , currentGenre , sortingColumn} = this.state;
+const {currentPage , pageSize , movies: allMovies , currentGenre, searchQuery , sortingColumn} = this.state;
 
-const filteredMovies = currentGenre && currentGenre._id ? allMovies.filter(movie => movie.genre._id ===
-currentGenre._id) : allMovies;
+let filteredMovies = allMovies;
+if (searchQuery) {
+    filteredMovies = allMovies.filter(movie => movie.title.toLowerCase().startsWith(searchQuery.toLowerCase()));
+} else if (currentGenre && currentGenre._id){
+    filteredMovies = allMovies.filter(movie => movie.genre._id ===
+        currentGenre._id);
+}
+
 // sorting movies list..
 const sortingMovies = _.sortBy(filteredMovies , [sortingColumn.path], [sortingColumn.order]);
 
@@ -67,9 +90,13 @@ addNewMovieHandler = () => {
     this.props.history.push("/movies/new");
 }
 
+searchMoviesHandler = query => {
+    this.setState({searchQuery: query, currentGenre: null , currentPage: 1});
+}
+
 render() {
 const {length: count} = this.state.movies;
-const {currentPage , pageSize , sortingColumn} = this.state;
+const {currentPage , pageSize , sortingColumn , searchQuery} = this.state;
 
 const {totalDataCount , data} = this.getPageData();
 
@@ -83,7 +110,7 @@ return ( <React.Fragment>
         <div className="col">
             <button className="btn btn-primary" onClick={this.addNewMovieHandler}>New Movie</button>
             <h1>Showing {totalDataCount} movies in database.</h1>
-            <input type="text" className="form-control" placeholder="Search..." />
+            <SearchInput value={searchQuery} onChange={this.searchMoviesHandler}/>
             <MoviesTable movies={data} onLiked={this.isLikedHandler} onDelete={this.deleteMovieHandler}
                 sortingColumn={sortingColumn} onSorting={this.sortingHandler} />
             <Pagination moviesCount={totalDataCount} pageSize={pageSize} currentPage={currentPage}
