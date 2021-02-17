@@ -1,12 +1,14 @@
 import React from 'react';
 import Joi from "joi-browser";
 import Form from './common/form';
+import { saveUser } from './../services/userService';
+import { registerWithJwt } from '../services/authService';
 
 class RegisterForm extends Form {
     state = {
         data: {
             name: '',
-            username: '',
+            email: '',
             password: ''
         },
         errors: {}
@@ -17,7 +19,7 @@ class RegisterForm extends Form {
         .required()
         .min(6)
         .max(20),
-        username: Joi.string()
+        email: Joi.string()
         .required()
         .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
         password: Joi.string()
@@ -26,8 +28,21 @@ class RegisterForm extends Form {
         .max(20)
     };
 
-    doSubmit = () => {
-        console.log("regitrastion submitted.");
+    doSubmit = async () => {
+        try {
+            const response = await saveUser(this.state.data);
+            registerWithJwt(response.headers['x-auth-token']);
+            //this.props.history.push('/');
+            //console.log("regitrastion submitted.");
+            window.location = "/";
+        } catch (error) {
+            if (error.response && error.response.status === 400) {
+                const errors = {...this.state.errors};
+                errors.email = error.response.data;
+                this.setState({ errors: errors }); 
+            }
+        }
+
     }
 
     render() { 
@@ -35,7 +50,7 @@ class RegisterForm extends Form {
             <h1>Please register your account.</h1>
             <form onSubmit={this.submitHandler}>
                 {this.renderInput('name' , 'Name')}
-                {this.renderInput('username' , 'Username' , 'email')}
+                {this.renderInput('email' , 'Email' , 'email')}
                 {this.renderInput('password' , 'Password' , 'password')}
                 {this.renderButton('Register')}    
             </form>      

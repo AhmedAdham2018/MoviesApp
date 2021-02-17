@@ -21,7 +21,6 @@ class MovieForm extends Form {
 
 
     schema = {
-        _id: Joi.string(),
         title: Joi.string()
         .required(),
         genreId: Joi.string()
@@ -36,17 +35,23 @@ class MovieForm extends Form {
         .required(),
     };
 
-    componentDidMount() {
-        const genres = getGenres();
+    async fetchGenres (){
+        const {data: genres} = await getGenres();
         this.setState({ genres });
+    }
 
-        const movieId = this.props.match.params.id;
+    async fetchMovies(){
+        try {
+            const movieId = this.props.match.params.id;
+            if(movieId === "new") return;
+            const {data: movie} = await getMovie(movieId);
+            this.setState({ data: this.mapToViewModel(movie) });
 
-        if(movieId === "new") return;
-        const movie = getMovie(movieId);
-        if(!movie) return this.props.history.replace("/not-found");
-        this.setState({ data: this.mapToViewModel(movie) });
-
+        } catch (error) {
+            if(error.response && error.response.status === 404) {
+                this.props.history.replace("/not-found");
+            }
+        }
     }
 
     mapToViewModel = movie => {
@@ -59,12 +64,16 @@ class MovieForm extends Form {
         };
     }
 
-    doSubmit = () => {
-        saveMovie(this.state.data);
+    async componentDidMount() {
+        await this.fetchGenres();
+        await this.fetchMovies();
+    }
+
+    doSubmit = async () => {
+        await saveMovie(this.state.data);
         this.props.history.push("/movies");
         console.log("save submitted.");
     }
-
 
     render() { 
         return ( <React.Fragment>

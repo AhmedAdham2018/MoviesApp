@@ -8,7 +8,7 @@ import MoviesTable from './movies_table';
 import _ from 'lodash';
 import {toast} from 'react-toastify';
 import SearchInput from './common/search_input';
-import axios from "axios";
+import { Link } from 'react-router-dom';
 
 
 class Movies extends Component {
@@ -23,12 +23,12 @@ state = {
     sortingColumn: {path: 'title' , order: 'asc'}
 };
 
-async componentDidMount(){
-    const { data } = await getGenres();
-    console.log(data);
+async componentDidMount() {
+    const {data} = await getGenres();
+    //console.log(data);
     const genres = [{_id: '' , name: "All genres"}, ...data];
-    const {data: movies} = await getMovies();
-    this.setState({ movies, genres });
+    const movies = await getMovies();
+    this.setState({movies: movies.data, genres:genres });
 }
 
 
@@ -42,7 +42,7 @@ deleteMovieHandler = async movie => {
     } catch (error) {
         if(error.response && error.response.status === 404)
            toast.error('The movie has already been deleted.');
-        setState({movies: oldMovies});
+        this.setState({movies: oldMovies});
     }
 }
 
@@ -86,10 +86,6 @@ const movies = paginate(sortingMovies , currentPage , pageSize);
 return {totalDataCount: filteredMovies.length , data: movies};
 }
 
-addNewMovieHandler = () => {
-    this.props.history.push("/movies/new");
-}
-
 searchMoviesHandler = query => {
     this.setState({searchQuery: query, currentGenre: null , currentPage: 1});
 }
@@ -108,7 +104,7 @@ return ( <React.Fragment>
                 onGenreChange={this.genresChangeHandler} />
         </div>
         <div className="col">
-            <button className="btn btn-primary" onClick={this.addNewMovieHandler}>New Movie</button>
+            {this.props.user && <Link className="btn btn-primary" to="/movies/new">New Movie</Link>}
             <h1>Showing {totalDataCount} movies in database.</h1>
             <SearchInput value={searchQuery} onChange={this.searchMoviesHandler}/>
             <MoviesTable movies={data} onLiked={this.isLikedHandler} onDelete={this.deleteMovieHandler}

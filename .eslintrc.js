@@ -7,7 +7,7 @@ exports = {
 'extends': ['eslint:recommended'],
 'plugins': ['react'],
 'parserOptions': {
-    'ecmaVersion': 2017
+    'ecmaVersion': 2018
 },
 'rules': {
   'prettier/prettier': [

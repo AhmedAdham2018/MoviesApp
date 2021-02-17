@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+//import PropTypes from 'prop-types';
 
 const Like = ({isLiked , onLiked}) => {
 
@@ -10,6 +10,6 @@ const Like = ({isLiked , onLiked}) => {
     } 
 }
 
-Like.propTypes = {isLiked: PropTypes.bool.isRequired , onLiked: PropTypes.func.isRequired};
+//Like.propTypes = {isLiked: PropTypes.bool.isRequired , onLiked: PropTypes.func.isRequired};
  
 export default Like;

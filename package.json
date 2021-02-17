@@ -10,6 +10,8 @@
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "joi-browser": "^13.4.0",
+    "jquery": "^1.9.1",
+    "jwt-decode": "^3.1.2",
     "lodash": "^4.17.20",
     "prop-types": "^15.7.2",
     "react": "^17.0.1",
@@ -43,16 +45,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "eslint": "^7.19.0",
-    "eslint-config-prettier": "^7.2.0",
-    "eslint-config-standard": "^16.0.2",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^3.3.1",
-    "eslint-plugin-promise": "^4.3.1",
-    "eslint-plugin-react": "^7.22.0",
-    "prettier": "^2.2.1"
   }
 }
