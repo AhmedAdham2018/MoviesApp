@@ -1,6 +1,6 @@
 {
   "jwtPrivateKey": "unsecurekey",
   "db": "mongodb://localhost/movies",
-  "port": "3100",
+  "port": "8080",
   "requiresAuth": false
 }
